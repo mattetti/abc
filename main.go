@@ -10,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -29,6 +30,7 @@ var (
 	URLFlag    = flag.String("url", "", "URL of the page to backup.")
 	hlsFlag    = flag.Bool("m3u8", true, "Should use HLS/m3u8 format to download (instead of dash)")
 	urlPattern = `https?://iview\.abc\.net\.au/(?:[^/]+/)*video/(?P<id>[^/?#]+)`
+	httpClient *http.Client
 )
 
 var ErrNoPlayerData = errors.New("no playerData found")
@@ -51,6 +53,15 @@ func main() {
 		fmt.Println("Downloading subtitles only")
 	}
 
+	// set a shared client with its cookie jar
+	// (not really needed but good practice)
+	jar, err := cookiejar.New(nil)
+	if err != nil {
+		panic(err)
+	}
+	httpClient = &http.Client{
+		Jar: jar,
+	}
 	givenURL := *URLFlag
 
 	re := regexp.MustCompile(urlPattern)
@@ -128,6 +139,7 @@ func downloadHLSVideo(givenURL, videoID string) {
 	}
 	if len(streamURL) == 0 {
 		fmt.Println("Could not find a stream URL")
+		fmt.Printf("%+v\n", info)
 		os.Exit(1)
 	}
 
@@ -144,7 +156,7 @@ func downloadHLSVideo(givenURL, videoID string) {
 	if err != nil {
 		log.Fatalf("failed to build request to %s, err: %v", reqURL, err)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		log.Fatalf("failed to send request to %s, err: %v", reqURL, err)
 	}
@@ -195,7 +207,7 @@ func fetchStreamInfo(originURL, videoID string) (*StreamData, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to build request to %s, err: %v", reqURL, err)
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request to %s, err: %v", reqURL, err)
 	}

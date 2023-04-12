@@ -2,10 +2,10 @@ module github.com/mattetti/abc
 
 go 1.18
 
-require (
-	github.com/mattetti/m3u8Grabber v0.0.0-20230412090610-76d6ca3103e9
-	github.com/mattetti/mpdgrabber v0.0.0-20230116071343-5214aa6e9528
-)
+// github.com/mattetti/m3u8Grabber v0.0.0-20230412090610-76d6ca3103e9
+require github.com/mattetti/mpdgrabber v0.0.0-20230116071343-5214aa6e9528
+
+require github.com/mattetti/m3u8Grabber v0.0.0-00010101000000-000000000000
 
 require (
 	github.com/abema/go-mp4 v0.9.0 // indirect
